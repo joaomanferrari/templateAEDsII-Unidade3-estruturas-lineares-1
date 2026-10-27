@@ -1,86 +1,73 @@
 import java.util.NoSuchElementException;
-import java.util.ArrayList;
 
+/**
+ * Pilha linear flexível (encadeada), com célula sentinela no fundo.
+ * @param <E> Tipo dos itens armazenados na pilha
+ */
 public class Pilha<E> {
 
 	private Celula<E> topo;
 	private Celula<E> fundo;
 
+	/** Cria uma pilha vazia. */
 	public Pilha() {
-
-		Celula<E> sentinela = new Celula<E>();
+		Celula<E> sentinela = new Celula<>();
 		fundo = sentinela;
 		topo = sentinela;
-
 	}
 
+	/** @return true se a pilha não tiver itens; false, caso contrário */
 	public boolean vazia() {
 		return fundo == topo;
 	}
 
+	/**
+	 * Insere um item no topo da pilha.
+	 * @param item Item a ser empilhado
+	 */
 	public void empilhar(E item) {
-
-		topo = new Celula<E>(item, topo);
+		topo = new Celula<>(item, topo);
 	}
 
+	/**
+	 * Remove e retorna o item do topo da pilha.
+	 * @return O item que estava no topo da pilha
+	 * @throws NoSuchElementException se a pilha estiver vazia
+	 */
 	public E desempilhar() {
-
 		E desempilhado = consultarTopo();
+		Celula<E> antigoTopo = topo;
 		topo = topo.getProximo();
+		antigoTopo.setProximo(null);
 		return desempilhado;
-
 	}
 
+	/**
+	 * Retorna, sem remover, o item do topo da pilha.
+	 * @return O item do topo da pilha
+	 * @throws NoSuchElementException se a pilha estiver vazia
+	 */
 	public E consultarTopo() {
-
-		if (vazia()) {
-			throw new NoSuchElementException("Nao há nenhum item na pilha!");
-		}
-
-		return topo.getItem();
-
-	}
-
-	public void imprimir() throws IllegalStateException {
-
-		Celula<E> aux;
-
 		if (vazia())
-			throw new IllegalStateException("Pilha vazia!");
-		else {
-			aux = topo;
-			while (aux != fundo) {
-				System.out.println(aux.getItem().toString());
-				aux = aux.getProximo();
-			}
-		}
+			throw new NoSuchElementException("Não há nenhum item na pilha!");
+		return topo.getItem();
 	}
 
-	
-	public Pilha<E> subPilha(int numItens) {
-		
-		if (numItens < 0)
-			throw new IllegalArgumentException("A quantidade de itens não pode ser negativa.");
-		if (numItens > tamanho())
-			throw new IllegalArgumentException("A quantidade solicitada excede o tamanho da pilha.");
+	/**
+	 * Representação em String da pilha: um item por linha, do topo para o fundo.
+	 * @return String com os itens da pilha (vazia, se a pilha não tiver itens)
+	 */
+	@Override
+	public String toString() {
 
-		Pilha<E> subPilha = new Pilha<>();
+		StringBuilder dados = new StringBuilder();
 		Celula<E> atual = topo;
-		ArrayList<E> itens = new ArrayList<>(numItens);
-		for (int i = 0; i < numItens; i++) {
-			itens.add(atual.getItem());
+
+		while (atual != fundo) {
+			dados.append(atual.getItem()).append("\n");
 			atual = atual.getProximo();
 		}
-		for (int i = numItens - 1; i >= 0; i--)
-			subPilha.empilhar(itens.get(i));
-		return subPilha;
-	}
 
-	/** Retorna o número de elementos atualmente na pilha. */
-	public int tamanho() {
-		int tamanho = 0;
-		for (Celula<E> atual = topo; atual != fundo; atual = atual.getProximo())
-			tamanho++;
-		return tamanho;
+		return dados.toString();
 	}
 }

@@ -1,91 +1,70 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Predicate;
 
+/**
+ * Representa um pedido de venda do comércio.
+ * Os produtos do pedido são armazenados em uma lista flexível.
+ */
 public class Pedido {
 
-	/** Quantidade máxima de produtos de um pedido */
-	private static final int MAX_PRODUTOS = 10;
-	
-	/** Vetor para armazenar os produtos do pedido */
-	private Produto[] produtos;
-	
-	public Produto[] getProdutos() {
-		return java.util.Arrays.copyOf(produtos, quantProdutos);
-	}
+	/** Último código atribuído a um pedido */
+	private static int ultimoID = 0;
 
-	/** Quantidade de produtos incluídos neste pedido. */
-	public int getQuantidadeProdutos() {
-		return quantProdutos;
-	}
+	/** Código identificador do pedido */
+	private int idPedido;
 
-	/** Armazena a quantidade total de produtos no pedido neste momento */
-	private int quantProdutos;
-
-	/** Armazena a data de criação do pedido */
+	/** Data de criação do pedido */
 	private LocalDate dataPedido;
 
-	/** Construtor do Pedido. Deve criar o vetor e armazenar a data atual do sistema na data do pedido */
+	/** Lista dos produtos do pedido */
+	private Lista<Produto> produtos;
+
+	/**
+	 * Cria um pedido sem produtos, com código sequencial e a data atual do sistema como data do pedido.
+	 */
 	public Pedido() {
-		produtos = new Produto[MAX_PRODUTOS];
+		this.idPedido = ++ultimoID;
 		this.dataPedido = LocalDate.now();
-		this.quantProdutos = 0;
-	}
-
-	
-
-    /**
-     * Inclui um produto neste pedido e aumenta a quantidade de produtos armazenados.
-     * @param novo O produto a ser incluído no pedido
-     * @return A quantidade de produtos no pedido após a inclusão
-     */
-	public int incluirProduto(Produto novo) {
-		if(quantProdutos < MAX_PRODUTOS && novo != null) {
-			produtos[quantProdutos++] = novo;
-		} else {
-			System.out.println("Produto nulo ou excedeu a quantidade de produtos permitida.");
-		}
-		return quantProdutos;
-	}
-
-    /**
-     * Calcula e retorna o valor final do pedido (soma do valor de venda de todos os produtos)
-     * @return Valor a ser pago pelo pedido (double)
-     */
-	public double valorFinal() {
-		double total = 0d;
-		for (int i = 0; i < quantProdutos; i++) {
-			total += produtos[i].valorDeVenda();
-		}
-		return total;
-	}
-
-    /**
-     * Representação em String do produto. Contém um cabeçalho com sua data e depois, em cada linha,
-     * a descrição de cada produto. Ao final, mostra o valor a pagar pelo pedido.
-     * @return Uma string contendo dados de um pedido conforme especificado (cabeçalho, detalhes, valor a pagar)
-     */
-	public String toString() {
-		DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		StringBuilder retorno = new StringBuilder("Pedido na data "+formato.format(dataPedido)+"\n");
-		for (int i = 0; i < quantProdutos; i++) {
-			retorno.append(produtos[i].toString()+"\n");
-		}
-		retorno.append(String.format("Valor a pagar: R$ %.2f", valorFinal()));
-		return retorno.toString();
-				
+		this.produtos = new Lista<>();
 	}
 
 	/**
-	 * Deve retornar uma descrição resumida do Pedido em uma única linha. O formato deve ser
-	 * "Pedido com XX produtos em DD/MM/AAAA, valor total de R$ XX,XX"
-	 * @return Uma string como especificada acima
+	 * Inclui um produto no final da lista de produtos deste pedido.
+	 * @param novo O produto a ser incluído no pedido
+	 * @return true se o produto foi incluído; false se o produto for nulo
 	 */
-	public String resumo() {
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");   
-		String valorFinalFormatado = String.format("%.2f",this.valorFinal()).replace(",", ".");     
-        String dados = "Pedido com " + quantProdutos + " produtos em " + formato.format(dataPedido) + ", valor total de R$ " + valorFinalFormatado;
-        return dados;
+	public boolean incluirProduto(Produto novo) {
+		if (novo == null)
+			return false;
+		produtos.inserirFinal(novo);
+		return true;
+	}
+
+	/**
+	 * Representação em String do pedido: um cabeçalho com o código, a data e a quantidade
+	 * de produtos, seguido dos produtos do pedido, um por linha.
+	 * @return String com os dados do pedido
+	 */
+	@Override
+	public String toString() {
+		DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		return String.format("Pedido %02d - %s - %d produto(s)\n", idPedido, formato.format(dataPedido), produtos.tamanho())
+				+ produtos;
+	}
+
+	public boolean contemProdutoAcimaDe(double valor){
+		double precoCusto;
+
+		if (precoCusto > valor){
+			return true;
+		}
+
 
 	}
 
+	Predicate<Produto> cond = (){
+
+	}
+	
 }
