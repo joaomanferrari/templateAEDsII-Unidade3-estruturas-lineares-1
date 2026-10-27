@@ -10,7 +10,12 @@ public class Pedido {
 	private Produto[] produtos;
 	
 	public Produto[] getProdutos() {
-		return produtos;
+		return java.util.Arrays.copyOf(produtos, quantProdutos);
+	}
+
+	/** Quantidade de produtos incluídos neste pedido. */
+	public int getQuantidadeProdutos() {
+		return quantProdutos;
 	}
 
 	/** Armazena a quantidade total de produtos no pedido neste momento */

@@ -5,7 +5,7 @@ public class Fila<E> {
 	private Celula<E> frente;
 	private Celula<E> tras;
 	
-	Fila() {
+	public Fila() {
 		
 		Celula<E> sentinela = new Celula<E>();
 		frente = tras = sentinela;
@@ -51,6 +51,14 @@ public class Fila<E> {
 
 		return frente.getProximo().getItem();
 
+	}
+
+	/** Retorna o número de elementos atualmente na fila. */
+	public int tamanho() {
+		int tamanho = 0;
+		for (Celula<E> atual = frente.getProximo(); atual != null; atual = atual.getProximo())
+			tamanho++;
+		return tamanho;
 	}
 	
 	public void imprimir() {

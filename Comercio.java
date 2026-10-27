@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -23,14 +22,11 @@ public class Comercio {
     /** Quantidade produtos cadastrados atualmente no vetor */
     static int quantosProdutos;
 
-    /** Quantidade máxima de pedidos que podem ser armazenados no vetor */
-    static final int MAX_PEDIDOS = 10;
-    
-    /** Vetor de pedidos cadastrados */
-    static Pedido[] pedidosCadastrados;
-    
-    /** Quantidade de pedidos cadastrados atualmente no vetor */
-    static int quantPedidos;
+    /** Fila com os pedidos realizados nesta execução. */
+    static Fila<Pedido> pedidosCadastrados;
+
+    /** Produtos dos pedidos finalizados, do mais recente para o mais antigo. */
+    static Pilha<Produto> produtosPedidosRecentemente;
     
     /** Gera um efeito de pausa na CLI. Espera por um enter para continuar */
     static void pausa(){
@@ -55,6 +51,7 @@ public class Comercio {
         System.out.println("3 - Cadastrar novo produto");
         System.out.println("4 - Iniciar novo pedido");
         System.out.println("5 - Fechar pedido");
+        System.out.println("6 - Listar K produtos mais recentemente vendidos");
         System.out.println("0 - Sair");
         System.out.print("Digite sua opção: ");
         return Integer.parseInt(teclado.nextLine());
@@ -202,8 +199,7 @@ public class Comercio {
         int opcao = -1;
         int indexProd = 0;
         int qtdeProdutosNoPedido = 0;
-        if(quantPedidos < MAX_PEDIDOS) {
-            novo = new Pedido();
+        novo = new Pedido();
             listarTodosOsProdutos();
             do {
                 System.out.println("Informe o código do produto desejado ou 0 para Sair):");
@@ -227,22 +223,39 @@ public class Comercio {
                 }
             } while(opcao != 0);
             
-        } else {
-            System.out.println("Quantidade máxima de pedidos atingida!");
-        }
         return novo;
     }
 
     /**
-     * Finaliza um pedido, momento no qual ele deve ser armazenado em um vetor de pedidos.
+     * Finaliza um pedido e o armazena na fila de pedidos.
      * @param pedido O pedido que deve ser finalizado.
      */
     public static void finalizarPedido(Pedido pedido) {
-        if(pedido != null && quantPedidos < MAX_PEDIDOS) {
-            pedidosCadastrados[quantPedidos++] = pedido;
+        if(pedido != null && pedido.getQuantidadeProdutos() > 0) {
+            pedidosCadastrados.enfileirar(pedido);
+            for (Produto produto : pedido.getProdutos())
+                produtosPedidosRecentemente.empilhar(produto);
+            System.out.println("Pedido finalizado e armazenado.");
         } else {
-            System.out.println("Pedido vazio ou excedeu a quantidade máxima de pedidos armazenados.");
+            System.out.println("Pedido vazio; nenhum pedido foi armazenado.");
         }
+    }
+
+    /** Lista os K produtos mais recentemente incluídos em pedidos finalizados. */
+    public static void listarProdutosPedidosRecentemente(int quantidade) {
+        if (quantidade < 0)
+            throw new IllegalArgumentException("A quantidade não pode ser negativa.");
+        if (quantidade == 0) {
+            System.out.println("Informe uma quantidade maior que zero.");
+            return;
+        }
+        if (produtosPedidosRecentemente.vazia()) {
+            System.out.println("Nenhum produto foi vendido nesta execução.");
+            return;
+        }
+        int disponiveis = Math.min(quantidade, produtosPedidosRecentemente.tamanho());
+        System.out.println("\nPRODUTOS MAIS RECENTEMENTE VENDIDOS:");
+        produtosPedidosRecentemente.subPilha(disponiveis).imprimir();
     }
 
      /**
@@ -253,16 +266,33 @@ public class Comercio {
     public static void salvarPedidos(String nomeArquivo) {
         try {
             FileWriter arquivoSaida = new FileWriter(nomeArquivo, Charset.forName("UTF-8"));
-            arquivoSaida.append(quantPedidos + "\n");
-            for (int i = 0; i < pedidosCadastrados.length; i++) {
-                if(pedidosCadastrados[i] != null)
-                    arquivoSaida.append(pedidosCadastrados[i].resumo()+"\n");
-            }
+            arquivoSaida.append(pedidosCadastrados.tamanho() + "\n");
+            Fila<Pedido> pedidosParaSalvar = copiarFila(pedidosCadastrados);
+            while (!pedidosParaSalvar.vazia())
+                arquivoSaida.append(pedidosParaSalvar.desenfileirar().resumo()+"\n");
             arquivoSaida.close();    
             System.out.println("Arquivo "+nomeArquivo+" salvo.");
         } catch (IOException e) {
             System.out.println("Problemas no arquivo "+nomeArquivo+". Tente novamente");
         }  
+    }
+
+    private static Fila<Pedido> copiarFila(Fila<Pedido> original) {
+        Fila<Pedido> copia = new Fila<>();
+        Fila<Pedido> auxiliar = new Fila<>();
+        while (!original.vazia()) {
+            Pedido pedido = original.desenfileirar();
+            copia.enfileirar(pedido);
+            auxiliar.enfileirar(pedido);
+        }
+        while (!auxiliar.vazia())
+            original.enfileirar(auxiliar.desenfileirar());
+        return copia;
+    }
+
+    public static void listarProdutosPedidosRecentemente() {
+        System.out.print("Quantos produtos deseja listar? ");
+        listarProdutosPedidosRecentemente(Integer.parseInt(teclado.nextLine()));
     }
 
     public static void main(String[] args) {
@@ -271,7 +301,8 @@ public class Comercio {
         nomeArquivoDados = "produtos_10000.txt";
         String nomeArquivoPedidos = "dadosPedidos.csv";
         produtosCadastrados = lerProdutos(nomeArquivoDados);
-        pedidosCadastrados = new Pedido[MAX_PEDIDOS];
+        pedidosCadastrados = new Fila<>();
+        produtosPedidosRecentemente = new Pilha<>();
         Pedido pedido = null;
         
         int opcao = -1;
@@ -284,6 +315,7 @@ public class Comercio {
                 case 3 -> cadastrarProduto();
                 case 4 -> pedido = iniciarPedido();
                 case 5 -> finalizarPedido(pedido);
+                case 6 -> listarProdutosPedidosRecentemente();
             }
             pausa();
         }while(opcao != 0);       
