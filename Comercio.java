@@ -25,6 +25,9 @@ public class Comercio {
     /** Fila com os pedidos realizados nesta execução. */
     static Fila<Pedido> pedidosCadastrados;
 
+    /** Quantidade máxima de pedidos mantidos durante uma execução. */
+    static final int MAX_PEDIDOS = 10;
+
     /** Produtos dos pedidos finalizados, do mais recente para o mais antigo. */
     static Pilha<Produto> produtosPedidosRecentemente;
     
@@ -199,6 +202,10 @@ public class Comercio {
         int opcao = -1;
         int indexProd = 0;
         int qtdeProdutosNoPedido = 0;
+        if (pedidosCadastrados.tamanho() >= MAX_PEDIDOS) {
+            System.out.println("Quantidade máxima de pedidos atingida!");
+            return null;
+        }
         novo = new Pedido();
             listarTodosOsProdutos();
             do {

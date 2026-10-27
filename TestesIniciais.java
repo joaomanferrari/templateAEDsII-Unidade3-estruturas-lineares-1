@@ -4,9 +4,8 @@ public class TestesIniciais {
 		Fila<Integer> fila = new Fila<>();
 		Pilha<Integer> pilha = new Pilha<>();
 
-		// Exemplo com os dígitos 1, 2 e 3. Substitua-os pelos dígitos
-		// distintos da matrícula do estudante antes de apresentar a atividade.
-		int[] digitos = {1, 2, 3};
+		// Dígitos distintos da matrícula 885047.
+		int[] digitos = {8, 5, 0, 4, 7};
 		for (int digito : digitos) {
 			fila.enfileirar(digito);
 			pilha.empilhar(digito);
